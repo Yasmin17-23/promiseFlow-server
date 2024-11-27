@@ -36,31 +36,36 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
      
-    const volunteerCollection = client.db('promiseFlow').collection('volunteer');
+    const organizerCollection = client.db('promiseFlow').collection('organizer');
+    const VolunteerCollection = client.db('promiseFlow').collection('volunteer');
 
-    app.get('/volunteers', async(req, res) => {
-       const result = await volunteerCollection.find().toArray();
+    app.get('/organizers', async(req, res) => {
+       const result = await organizerCollection.find().toArray();
        res.send(result);
     })
 
 
-    //Get a single volunteer post from db
-    app.get('/volunteers/:id', async (req, res) => {
+    //Get a single organizer post from db
+    app.get('/organizers/:id', async (req, res) => {
        const id = req.params.id;
        const query = { _id: new ObjectId(id) };
-       const result = await volunteerCollection.findOne(query);
+       const result = await organizerCollection.findOne(query);
        res.send(result);
     })
-
-
-
-
-   //Save a volunteer data in db
-   app.post('/volunteer', async (req, res) => {
-      const volunteerData = req.body;
-      const result = await volunteerCollection.insertOne(volunteerData);
+    
+   //Save a oraganizer data in db
+   app.post('/organizer', async (req, res) => {
+      const organizerData = req.body;
+      const result = await organizerCollection.insertOne(organizerData);
       res.send(result);
    })
+
+  //Save a volunteer data in db
+  app.post('/volunteer', async (req, res) => {
+     const volunteerData = req.body;
+     const result = await VolunteerCollection.insertOne(volunteerData);
+     res.send(result);
+  })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
