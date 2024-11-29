@@ -77,7 +77,21 @@ async function run() {
       const result = await organizerCollection.find(query).toArray();
       res.send(result);
     })
-
+    
+    //Update a organizer post in db 
+    app.put('/organizer/:id', async (req, res) => {
+      const id = req.params.id;
+      const organizerData = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+         $set: {
+           ...organizerData,
+         },
+      }
+      const result = await organizerCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    })
 
 
 
