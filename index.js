@@ -100,8 +100,23 @@ async function run() {
       const result = await organizerCollection.updateOne(query, updateDoc, options);
       res.send(result);
     })
-
-
+    
+    //Get all volunteers request from db for oraganizer
+    app.get('/volunteer-requsets/:email', async (req, res) => {
+       const email = req.params.email;
+       const query = { 'owner.email': email };
+       const result = await VolunteerCollection.find(query).toArray();
+       console.log(result)
+       res.send(result);
+    })
+    
+    //Delete a volunteer request data from db
+    app.delete('/volunteer/:id', async (req, res) => {
+       const id = req.params.id;
+       const query = { _id: new ObjectId (id) };
+       const result = await VolunteerCollection.deleteOne(query);
+       res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
