@@ -77,6 +77,14 @@ async function run() {
       const result = await organizerCollection.find(query).toArray();
       res.send(result);
     })
+
+    //Delete a organizer data from db
+    app.delete('/organizer/:id', async (req, res) => {
+       const id = req.params.id;
+       const query = { _id: new ObjectId (id) };
+       const result = await organizerCollection.deleteOne(query);
+       res.send(result);
+    })
     
     //Update a organizer post in db 
     app.put('/organizer/:id', async (req, res) => {
