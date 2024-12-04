@@ -62,36 +62,36 @@ async function run() {
     app.post('/jwt', async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-         expiresIn: '365d',
+        expiresIn: '365d',
       })
       res.cookie('token', token, {
-         httpOnly: true,
-         secure: process.env.NODE_ENV === 'production',
-         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       })
-      .send({ success: true })
+        .send({ success: true })
     })
 
     //Clear token on logout
     app.get('/logout', (req, res) => {
-       res
-       .clearCookie('token', {
+      res
+        .clearCookie('token', {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
           maxAge: 0
-       })
-       .send({ success: true })
+        })
+        .send({ success: true })
     })
-    
+
 
     //Get all oraganizers data from db
     app.get('/organizers', async (req, res) => {
       const result = await organizerCollection.find().sort({ deadline: 1 }).toArray();
       res.send(result);
     })
-    
-  
+
+
     //Get a single organizer post from db
     app.get('/organizer/:id', async (req, res) => {
       const id = req.params.id;
@@ -103,6 +103,22 @@ async function run() {
     //Save a volunteer data in db
     app.post('/volunteer', async (req, res) => {
       const volunteerData = req.body;
+
+      const query = {
+        email: volunteerData.email,
+        volunteerId: volunteerData.volunteerId,
+      }
+
+      const alreadyRequest = await VolunteerCollection.findOne(query);
+
+      if (alreadyRequest) {
+        return res
+          .status(400)
+          .send('You have already send request on volunteer')
+
+      }
+     
+
       const result = await VolunteerCollection.insertOne(volunteerData);
       res.send(result);
     })
@@ -114,9 +130,9 @@ async function run() {
       const result = await organizerCollection.insertOne(organizerData);
       res.send(result);
     })
-    
-     //Get all organizers data from db by a specific user
-     app.get('/organizers/:email', async (req, res) => {
+
+    //Get all organizers data from db by a specific user
+    app.get('/organizers/:email', async (req, res) => {
       const email = req.params.email;
       const query = { 'owner.email': email };
       const result = await organizerCollection.find(query).toArray();
@@ -125,12 +141,12 @@ async function run() {
 
     //Delete a organizer data from db
     app.delete('/organizer/:id', async (req, res) => {
-       const id = req.params.id;
-       const query = { _id: new ObjectId (id) };
-       const result = await organizerCollection.deleteOne(query);
-       res.send(result);
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await organizerCollection.deleteOne(query);
+      res.send(result);
     })
-    
+
     //Update a organizer post in db 
     app.put('/organizer/:id', async (req, res) => {
       const id = req.params.id;
@@ -138,40 +154,40 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
-         $set: {
-           ...organizerData,
-         },
+        $set: {
+          ...organizerData,
+        },
       }
       const result = await organizerCollection.updateOne(query, updateDoc, options);
       res.send(result);
     })
-    
+
     //Get all volunteers request from db for oraganizer
     app.get('/volunteer-requsets/:email', async (req, res) => {
-       const email = req.params.email;
-       const query = { 'owner.email': email };
-       const result = await VolunteerCollection.find(query).toArray();
-       console.log(result)
-       res.send(result);
-    })
-    
-    //Delete a volunteer request data from db
-    app.delete('/volunteer/:id', async (req, res) => {
-       const id = req.params.id;
-       const query = { _id: new ObjectId (id) };
-       const result = await VolunteerCollection.deleteOne(query);
-       res.send(result);
+      const email = req.params.email;
+      const query = { 'owner.email': email };
+      const result = await VolunteerCollection.find(query).toArray();
+      console.log(result)
+      res.send(result);
     })
 
-   //Get all oraganizers data from db for implement search
-   app.get('/all-organizers', async (req, res) => {
-    const search = req.query.search || '';
-    let query = {
-       postTitle: { $regex: search, $options: 'i' },
-    }
-    const result = await organizerCollection.find(query).sort({ deadline: 1 }).toArray();
-    res.send(result);
-  })
+    //Delete a volunteer request data from db
+    app.delete('/volunteer/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await VolunteerCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    //Get all oraganizers data from db for implement search
+    app.get('/all-organizers', async (req, res) => {
+      const search = req.query.search || '';
+      let query = {
+        postTitle: { $regex: search, $options: 'i' },
+      }
+      const result = await organizerCollection.find(query).sort({ deadline: 1 }).toArray();
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
